@@ -30,4 +30,86 @@ lines(monthly_ma, col = "sky blue", lwd = 2)
 lines(yearly_ma, col = "purple", lwd = 2)
 legend("topright", legend = c("Weekly MA", "Monthly MA", "Yearly MA"), col = c("blue", "red", "green"), lwd = 2)
 
+adf_test <- ur.df(Adj.Close$Adj.Close, type = "none", lags = 0)
+summary(adf_test)
 
+par(mfrow = c(2, 1)) 
+# Set smaller margins
+par(mar = c(5, 5, 2, 2))  # c(bottom, left, top, right)
+
+# Plot your ACF with adjusted margins
+acf(Adj.Close$Adj.Close, lag.max = 60, ylim = c(0.0, 0.1), lwd = 5, col = "black", na.action = na.pass)
+
+pacf(Adj.Close$Adj.Close,lag.max = 36,lwd = 5, col = "black",na.action = na.pass)
+par(mfrow = c(1, 1)) 
+
+
+dadj <- na.exclude(diff.xts(Adj.Close$Adj.Close))
+adf_test_dadj <- ur.df(dadj, type = "none", lags = 0)
+summary(adf_test_dadj)
+
+par(mfrow = c(2, 1)) 
+par(mar = c(5, 5, 2, 2))  # c(bottom, left, top, right)
+acf(dadj,lag.max = 60, ylim = c(0.0, 0.1),lwd = 5,col = "dark green",na.action = na.pass)  
+pacf(dadj,lag.max = 36,lwd = 5, col = "dark green",na.action = na.pass)
+par(mfrow = c(1, 1)) 
+
+
+library(forecast)
+auto.arima(Adj.Close)
+cdata.shortx1 <- Adj.Close$Adj.Close["/20171007", ]
+arima212 <- Arima(cdata.shortx1$Adj.Close,order = c(2, 1, 2))
+arima212
+coeftest(arima212)
+summary(arima212)
+plot(resid(arima212))
+tibble(date = index(cdata.shortx1$Adj.Close),resid = arima212 %>% resid() %>% as.numeric()
+) %>%
+  ggplot(aes(date, resid)) +
+  geom_line(col = "royalblue3") +theme_bw()
+
+
+par(mfrow = c(2, 1)) 
+par(mar = c(5, 5, 2, 2))  # c(bottom, left, top, right)
+acf(resid(arima212),lag.max = 60,ylim = c(-0.1, 0.1),lwd = 5, col = "dark green",na.action = na.pass)
+pacf(resid(arima212),lag.max = 36,lwd = 5, col = "dark green",na.action = na.pass)
+par(mfrow = c(1, 1))
+Box.test(resid(arima212), type = "Ljung-Box", lag = 4)
+
+arima1133 <- Arima(cdata.shortx1$Adj.Close,order = c(1, 1,33))
+arima1133
+coeftest(arima1133)
+summary(arima1133)
+plot(resid(arima1133))
+tibble(date = index(cdata.shortx1$Adj.Close),resid = arima1133 %>% resid() %>% as.numeric()
+) %>%
+  ggplot(aes(date, resid)) +
+  geom_line(col = "royalblue3") +theme_bw()
+
+
+par(mfrow = c(2, 1)) 
+par(mar = c(5, 5, 2, 2))  # c(bottom, left, top, right)
+acf(resid(arima1133),lag.max = 60,ylim = c(-0.1, 0.1),lwd = 5, col = "dark green",na.action = na.pass)
+pacf(resid(arima1133),lag.max = 36,lwd = 5, col = "dark green",na.action = na.pass)
+par(mfrow = c(1, 1))
+Box.test(resid(arima1133), type = "Ljung-Box", lag = 4)
+
+
+
+arima1233 <- Arima(cdata.shortx1$Adj.Close,order = c(1, 2,33))
+arima1233
+coeftest(arima1233)
+summary(arima1233)
+plot(resid(arima1233))
+tibble(date = index(cdata.shortx1$Adj.Close),resid = arima1233 %>% resid() %>% as.numeric()
+) %>%
+  ggplot(aes(date, resid)) +
+  geom_line(col = "royalblue3") +theme_bw()
+
+
+par(mfrow = c(2, 1)) 
+par(mar = c(5, 5, 2, 2))  # c(bottom, left, top, right)
+acf(resid(arima1233),lag.max = 60,ylim = c(-0.1, 0.1),lwd = 5, col = "dark green",na.action = na.pass)
+pacf(resid(arima1233),lag.max = 36,lwd = 5, col = "dark green",na.action = na.pass)
+par(mfrow = c(1, 1))
+Box.test(resid(arima1233), type = "Ljung-Box", lag = 4)
