@@ -29,3 +29,5 @@ lines(weekly_ma, col = "green", lwd = 2)
 lines(monthly_ma, col = "sky blue", lwd = 2)
 lines(yearly_ma, col = "purple", lwd = 2)
 legend("topright", legend = c("Weekly MA", "Monthly MA", "Yearly MA"), col = c("blue", "red", "green"), lwd = 2)
+
+
