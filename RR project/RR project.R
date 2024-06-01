@@ -2,7 +2,7 @@ library(xts)
 library(lmtest)
 library(tidyverse)
 library(urca)
-
+sessionInfo()
 
 data <- read.csv("NFLX.csv")
 data$Date <- as.Date(data$Date, format = "%Y-%m-%d")
