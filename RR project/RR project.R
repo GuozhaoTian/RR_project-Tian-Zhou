@@ -3,6 +3,7 @@ library(lmtest)
 library(tidyverse)
 library(urca)
 library(forecast)
+
 # Read and prepare data
 data <- read.csv("NFLX.csv")
 data$Date <- as.Date(data$Date, format = "%Y-%m-%d")
@@ -46,41 +47,43 @@ plot(decomp$random, main = "Random Component", ylab = "Remainder")
 par(mfrow = c(1, 1), mar = c(1, 1, 1, 1)) 
 
 
-##The Augmented Dickey-Fuller (ADF) test for unit roots in a time series..
-adf_test <- ur.df(Adj.Close$Adj.Close, type = "none", lags = 0)
-summary(adf_test)
 # Set up the plotting area to have 2 rows and 1 column
 par(mfrow = c(2, 1)) 
 # Set smaller margins
 par(mar = c(5, 5, 2, 2))  # c(bottom, left, top, right)
-
 # Plot your ACF and PACF with adjusted margins
-acf(Adj.Close$Adj.Close, lag.max = 60, ylim = c(0.0, 1), lwd = 5, col = "grey", na.action = na.pass)
-pacf(Adj.Close$Adj.Close,lag.max = 36,lwd = 5, col = "black",na.action = na.pass)
+acf(Adj.Close, lag.max = 60, lwd = 5, col = "grey", na.action = na.pass)
+pacf(Adj.Close,lag.max = 36, lwd = 5, col = "black",na.action = na.pass)
 # Reset the plotting area to the default
 par(mfrow = c(1, 1)) 
 
-# Difference the data and remove NAs
-dadj <- na.exclude(diff.xts(Adj.Close$Adj.Close))
+#The Augmented Dickey-Fuller (ADF) test for unit roots in a time series.
+adf_test <- ur.df(Adj.Close, type = "drift", selectlags = "AIC")
+summary(adf_test)
 
-# Perform the ADF test on the differenced data
-adf_test_dadj <- ur.df(dadj, type = "none", lags = 0)
-summary(adf_test_dadj)
+
+# Difference the data and remove NAs
+dadj <- na.exclude(diff.xts(Adj.Close))
+
 # Set up the plotting area to have 2 rows and 1 column
 par(mfrow = c(2, 1)) 
 par(mar = c(5, 5, 2, 2))  # c(bottom, left, top, right)
 # Plot the ACF
-acf(dadj,lag.max = 60, ylim = c(0.0, 0.1),lwd = 5,col = "dark green",na.action = na.pass) 
+acf(dadj,lag.max = 60, lwd = 5,col = "dark green",na.action = na.pass) 
 # Plot the PACF
 pacf(dadj,lag.max = 36,lwd = 5, col = "dark green",na.action = na.pass)
 # Reset the plotting area to the default
 par(mfrow = c(1, 1)) 
 
+# Perform the ADF test on the differenced data
+adf_test_dadj <- ur.df(dadj, type = "drift", selectlags = "AIC")
+summary(adf_test_dadj)
+
 
 # Automatically fit ARIMA model
 auto.arima(Adj.Close)
 # Subset data up to a specific date
-cdata.shortx1 <- Adj.Close$Adj.Close["/20171007", ]
+cdata.shortx1 <- Adj.Close["/20171007", ]
 # Fit ARIMA(2, 1, 2) model
 arima212 <- Arima(cdata.shortx1$Adj.Close,order = c(2, 1, 2))
 arima212
