@@ -146,7 +146,7 @@ par(mfrow = c(1, 1))
 Box.test(resid(arima1233), type = "Ljung-Box", lag = 3)
 
 
-# Generate forecasts,627 future values are forecasted.
+# Generate ARIMA(2,1,2) forecasts, 627 future values(50% of data) are forecasted.
 forecasts <- forecast(arima212, h = 627) 
 
 # Extract forecasted mean
@@ -162,31 +162,27 @@ forecasts$upper
 forecasts_data <- data.frame(f_mean  = as.numeric(forecasts$mean),
                              f_lower = as.numeric(forecasts$lower[, 2]),
                              f_upper = as.numeric(forecasts$upper[, 2]))
-# Display the forecast data
-forecasts_data 
-
 
 # Subset data up to a specific date
 cdata.shortx1 <- Adj.Close$Adj.Close["/20171007", ]
-cdata.shortx1
-# Check the tail of the subset data
+# Check the head and tail of the subset data
+head(cdata.shortx1)
 tail(cdata.shortx1)
 # Subset data from a specific date
-cdata.shortx2 <-Adj.Close$Adj.Close["20171007/", ]
+cdata.shortx2 <-Adj.Close["20171007/", ]
 # Convert forecast data to xts object
 forecasts_xts <- xts(forecasts_data,order.by =index(cdata.shortx2))
 # Merge original data with forecast data
-cdata3 <- merge(Adj.Close,forecasts_xts)
+cdata212 <- merge(Adj.Close,forecasts_xts)
 # Display the merged data
-head(cdata3)
-tail(cdata3, n =627)
+head(cdata212)
+tail(cdata212, n =627)
 # Plot the merged data
-plot(cdata3, main = "Original Data and Forecasts", col = c("black", "blue", "red", "green"))
+plot(cdata212, main = "Forcasts from ARIMA(2,1,2)", col = c("black", "blue", "red", "green"))
 
 
-# Generate forecasts,627 future values are forecasted.
+# Generate ARIMA(1,1,33) forecasts,627 future values are forecasted.
 forecasts <- forecast(arima1133, h = 627) 
-forecasts
 # Extract forecasted mean
 forecasts$mean
 # Check class and convert to numeric
@@ -200,29 +196,26 @@ forecasts_data <- data.frame(f_mean  = as.numeric(forecasts$mean),
                              f_lower = as.numeric(forecasts$lower[, 2]),
                              f_upper = as.numeric(forecasts$upper[, 2]))
 
-# Display the forecast data
-forecasts_data 
-
-
 # Subset data up to a specific date
-cdata.shortx1 <- Adj.Close$Adj.Close["/20171007", ]
-cdata.shortx1
-# Check the tail of the subset data
+cdata.shortx1 <- Adj.Close["/20171007", ]
+# Check the head and tail of the subset data
+head(cdata.shortx1)
 tail(cdata.shortx1)
 # Subset data from a specific date
-cdata.shortx2 <-Adj.Close$Adj.Close["20171007/", ]
+cdata.shortx2 <-Adj.Close["20171007/", ]
 # Convert forecast data to xts object
 forecasts_xts <- xts(forecasts_data,order.by =index(cdata.shortx2))
 # Merge original data with forecast data
-cdata3 <- merge(Adj.Close,forecasts_xts)
+cdata1133 <- merge(Adj.Close,forecasts_xts)
 # Display the merged data
-head(cdata3)
-tail(cdata3, n =627)
+head(cdata1133)
+tail(cdata1133, n =627)
 # Plot the merged data
-plot(cdata3, main = "Original Data and Forecasts", col = c("black", "blue", "red", "green"))
+plot(cdata1133, main = "Forcasts from ARIMA(1,1,33)", col = c("black", "blue", "red", "green"))
 
-forecasts <- forecast(arima1233, h = 627) 
-forecasts
+
+# Generate ARIMA(1,2,33) forecasts,627 future values are forecasted.
+forecasts <- forecast(arima1233, h = 627)
 # Extract forecasted mean
 forecasts$mean
 # Check class and convert to numeric
@@ -235,23 +228,21 @@ forecasts$upper
 forecasts_data <- data.frame(f_mean  = as.numeric(forecasts$mean),
                              f_lower = as.numeric(forecasts$lower[, 2]),
                              f_upper = as.numeric(forecasts$upper[, 2]))
-# Display the forecast data
-forecasts_data 
-
 
 # Subset data up to a specific date
-cdata.shortx1 <- Adj.Close$Adj.Close["/20171007", ]
-cdata.shortx1
-# Check the tail of the subset data
+cdata.shortx1 <- Adj.Close["/20171007", ]
+# Check the head and tail of the subset data
+head(cdata.shortx1)
 tail(cdata.shortx1)
 # Subset data from a specific date
-cdata.shortx2 <-Adj.Close$Adj.Close["20171007/", ]
+cdata.shortx2 <-Adj.Close["20171007/", ]
 # Convert forecast data to xts object
 forecasts_xts <- xts(forecasts_data,order.by =index(cdata.shortx2))
 # Merge original data with forecast data
-cdata3 <- merge(Adj.Close,forecasts_xts)
+cdata1233 <- merge(Adj.Close,forecasts_xts)
 # Display the merged data
-head(cdata3)
-tail(cdata3, n =627)
+head(cdata1233)
+tail(cdata1233, n =627)
 # Plot the merged data
-plot(cdata3, main = "Original Data and Forecasts", col = c("black", "blue", "red", "green"))
+plot(cdata1233, main = "Forcasts from ARIMA(1,2,33)", col = c("black", "blue", "red", "green"))
+
