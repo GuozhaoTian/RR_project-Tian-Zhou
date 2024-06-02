@@ -81,84 +81,70 @@ summary(adf_test_dadj)
 
 
 # Automatically fit ARIMA model
-auto.arima(Adj.Close)
+auto.arima(Adj.Close, seasonal = TRUE)
 # Subset data up to a specific date
 cdata.shortx1 <- Adj.Close["/20171007", ]
 # Fit ARIMA(2, 1, 2) model
-arima212 <- Arima(cdata.shortx1$Adj.Close,order = c(2, 1, 2))
-arima212
-# Coefficient test and summary
-coeftest(arima212)
+arima212 <- Arima(cdata.shortx1,order = c(2, 1, 2))
+# Coefficients and summary
 summary(arima212)
+
+# Set up the plotting area to have 3 rows and 1 column
+par(mfrow = c(3, 1)) 
+par(mar = c(5, 5, 2, 2))  # c(bottom, left, top, right)
+
 # Plot residuals
 plot(resid(arima212))
-tibble(date = index(cdata.shortx1$Adj.Close),resid = arima212 %>% resid() %>% as.numeric()
-) %>%
-  ggplot(aes(date, resid)) +
-  geom_line(col = "royalblue3") +theme_bw()
-
-# Set up the plotting area to have 2 rows and 1 column
-par(mfrow = c(2, 1)) 
-par(mar = c(5, 5, 2, 2))  # c(bottom, left, top, right)
-
 # ACF and PACF of residuals
-acf(resid(arima212),lag.max = 60,ylim = c(-0.1, 0.1),lwd = 5, col = "dark green",na.action = na.pass)
-pacf(resid(arima212),lag.max = 36,lwd = 5, col = "dark green",na.action = na.pass)
+acf(resid(arima212),lag.max = 60, ylim = c(-0.1, 0.1), main = "ACF", lwd = 2, col = "dark green",na.action = na.pass)
+pacf(resid(arima212),lag.max = 36, main = "PACF", lwd = 2, col = "dark green",na.action = na.pass)
 # Reset the plotting area to the default
 par(mfrow = c(1, 1))
 # Ljung-Box test
 # The Box.test checks for the presence of autocorrelation in residuals. 
-Box.test(resid(arima212), type = "Ljung-Box", lag = 4)
-# Fit ARIMA(1, 2, 33) model
-arima1133 <- Arima(cdata.shortx1$Adj.Close,order = c(1, 1,33))
-arima1133
+Box.test(resid(arima212), type = "Ljung-Box", lag = 3)
+
+
+# Fit ARIMA(1, 1, 33) model
+arima1133 <- Arima(cdata.shortx1,order = c(1, 1,33))
 # Coefficient test and summary
-coeftest(arima1133)
 summary(arima1133)
+
+# Set up the plotting area to have 3 rows and 1 column
+par(mfrow = c(3, 1)) 
+par(mar = c(5, 5, 2, 2))  # c(bottom, left, top, right)
+
 # Plot residuals
 plot(resid(arima1133))
-tibble(date = index(cdata.shortx1$Adj.Close),resid = arima1133 %>% resid() %>% as.numeric()
-) %>%
-  ggplot(aes(date, resid)) +
-  geom_line(col = "royalblue3") +theme_bw()
-
-# Set up the plotting area to have 2 rows and 1 column
-par(mfrow = c(2, 1)) 
-par(mar = c(5, 5, 2, 2))  # c(bottom, left, top, right)
 # ACF and PACF of residuals
-acf(resid(arima1133),lag.max = 60,ylim = c(-0.1, 0.1),lwd = 5, col = "dark green",na.action = na.pass)
-pacf(resid(arima1133),lag.max = 36,lwd = 5, col = "dark green",na.action = na.pass)
+acf(resid(arima1133),lag.max = 60, main = "ACF", ylim = c(-0.1, 0.1),lwd = 2, col = "dark green",na.action = na.pass)
+pacf(resid(arima1133),lag.max = 36, main = "PACF", lwd = 2, col = "dark green",na.action = na.pass)
 # Reset the plotting area to the default
 par(mfrow = c(1, 1))
 # Ljung-Box test
 # The Box.test checks for the presence of autocorrelation in residuals. 
-Box.test(resid(arima1133), type = "Ljung-Box", lag = 4)
+Box.test(resid(arima1133), type = "Ljung-Box", lag = 3)
 
 
 # Fit ARIMA(1, 2, 33) model
 arima1233 <- Arima(cdata.shortx1$Adj.Close,order = c(1, 2,33))
-arima1233
 # Coefficient test and summary
-coeftest(arima1233)
 summary(arima1233)
+
+# Set up the plotting area to have 3 rows and 1 column
+par(mfrow = c(3, 1)) 
+par(mar = c(5, 5, 2, 2))  # c(bottom, left, top, right)
 # Plot residuals
 plot(resid(arima1233))
-tibble(date = index(cdata.shortx1$Adj.Close),resid = arima1233 %>% resid() %>% as.numeric()
-) %>%
-  ggplot(aes(date, resid)) +
-  geom_line(col = "royalblue3") +theme_bw()
-
-# Set up the plotting area to have 2 rows and 1 column
-par(mfrow = c(2, 1)) 
-par(mar = c(5, 5, 2, 2))  # c(bottom, left, top, right)
 # ACF and PACF of residuals
-acf(resid(arima1233),lag.max = 60,ylim = c(-0.1, 0.1),lwd = 5, col = "dark green",na.action = na.pass)
-pacf(resid(arima1233),lag.max = 36,lwd = 5, col = "dark green",na.action = na.pass)
+acf(resid(arima1233),lag.max = 60, main = "ACF", ylim = c(-0.1, 0.1), lwd = 2, col = "dark green",na.action = na.pass)
+pacf(resid(arima1233),lag.max = 36, main = "PACF", lwd = 2, col = "dark green",na.action = na.pass)
 # Reset the plotting area to the default
 par(mfrow = c(1, 1))
 # Ljung-Box test
 # The Box.test checks for the presence of autocorrelation in residuals. 
-Box.test(resid(arima1233), type = "Ljung-Box", lag = 4)
+Box.test(resid(arima1233), type = "Ljung-Box", lag = 3)
+
 
 # Generate forecasts,627 future values are forecasted.
 forecasts <- forecast(arima212, h = 627) 
