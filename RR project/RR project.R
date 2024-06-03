@@ -147,102 +147,110 @@ Box.test(resid(arima1233), type = "Ljung-Box", lag = 3)
 
 
 # Generate ARIMA(2,1,2) forecasts, 627 future values(50% of data) are forecasted.
-forecasts <- forecast(arima212, h = 627) 
-
+forecasts212 <- forecast(arima212, h = 627) 
+# Generate ARIMA(2,1,2) forecasts accuracy
+accuracy(forecasts212, Adj.Close["20171007/", ])
 # Extract forecasted mean
-forecasts
-forecasts$mean
+forecasts212
+forecasts212$mean
 # Check class and convert to numeric
-class(forecasts$mean)
-as.numeric(forecasts$mean)
+class(forecasts212$mean)
+as.numeric(forecasts212$mean)
 # Extract forecast confidence intervals
-forecasts$lower
-forecasts$upper
+forecasts212$lower
+forecasts212$upper
 # Create data frame for forecast data
-forecasts_data <- data.frame(f_mean  = as.numeric(forecasts$mean),
-                             f_lower = as.numeric(forecasts$lower[, 2]),
-                             f_upper = as.numeric(forecasts$upper[, 2]))
+forecasts212_data <- data.frame(f_mean  = as.numeric(forecasts212$mean),
+                             f_lower = as.numeric(forecasts212$lower[, 2]),
+                             f_upper = as.numeric(forecasts212$upper[, 2]))
 
 # Subset data up to a specific date
-cdata.shortx1 <- Adj.Close$Adj.Close["/20171007", ]
+cdata.shortx1 <- Adj.Close["/20171007", ]
 # Check the head and tail of the subset data
 head(cdata.shortx1)
 tail(cdata.shortx1)
 # Subset data from a specific date
 cdata.shortx2 <-Adj.Close["20171007/", ]
 # Convert forecast data to xts object
-forecasts_xts <- xts(forecasts_data,order.by =index(cdata.shortx2))
+forecasts212_xts <- xts(forecasts212_data,order.by =index(cdata.shortx2))
 # Merge original data with forecast data
-cdata212 <- merge(Adj.Close,forecasts_xts)
+cdata212 <- merge(Adj.Close,forecasts212_xts)
 # Display the merged data
 head(cdata212)
 tail(cdata212, n =627)
 # Plot the merged data
-plot(cdata212, main = "Forcasts from ARIMA(2,1,2)", col = c("black", "blue", "red", "green"))
+plot(cdata212, main = "Forecasts from ARIMA(2,1,2)", col = c("black", "blue", "red", "green"))
 
 
 # Generate ARIMA(1,1,33) forecasts,627 future values are forecasted.
-forecasts <- forecast(arima1133, h = 627) 
+forecasts1133 <- forecast(arima1133, h = 627) 
+# Generate ARIMA(1,1,33) forecasts accuracy
+accuracy(forecasts1133, Adj.Close["20171007/", ])
 # Extract forecasted mean
-forecasts$mean
+forecasts1133$mean
 # Check class and convert to numeric
-class(forecasts$mean)
-as.numeric(forecasts$mean)
+class(forecasts1133$mean)
+as.numeric(forecasts1133$mean)
 # Extract forecast confidence intervals
 forecasts$lower
 forecasts$upper
 # Create data frame for forecast data
-forecasts_data <- data.frame(f_mean  = as.numeric(forecasts$mean),
-                             f_lower = as.numeric(forecasts$lower[, 2]),
-                             f_upper = as.numeric(forecasts$upper[, 2]))
+forecasts1133_data <- data.frame(f_mean  = as.numeric(forecasts1133$mean),
+                             f_lower = as.numeric(forecasts1133$lower[, 2]),
+                             f_upper = as.numeric(forecasts1133$upper[, 2]))
 
-# Subset data up to a specific date
-cdata.shortx1 <- Adj.Close["/20171007", ]
-# Check the head and tail of the subset data
-head(cdata.shortx1)
-tail(cdata.shortx1)
-# Subset data from a specific date
-cdata.shortx2 <-Adj.Close["20171007/", ]
 # Convert forecast data to xts object
-forecasts_xts <- xts(forecasts_data,order.by =index(cdata.shortx2))
+forecasts1133_xts <- xts(forecasts1133_data,order.by =index(cdata.shortx2))
 # Merge original data with forecast data
-cdata1133 <- merge(Adj.Close,forecasts_xts)
+cdata1133 <- merge(Adj.Close,forecasts1133_xts)
 # Display the merged data
 head(cdata1133)
 tail(cdata1133, n =627)
 # Plot the merged data
-plot(cdata1133, main = "Forcasts from ARIMA(1,1,33)", col = c("black", "blue", "red", "green"))
+plot(cdata1133, main = "Forecasts from ARIMA(1,1,33)", col = c("black", "blue", "red", "green"))
 
 
 # Generate ARIMA(1,2,33) forecasts,627 future values are forecasted.
-forecasts <- forecast(arima1233, h = 627)
+forecasts1233 <- forecast(arima1233, h = 627)
+# Generate ARIMA(1,2,33) forecasts accuracy
+accuracy(forecasts1233, Adj.Close["20171007/", ])
 # Extract forecasted mean
-forecasts$mean
+forecasts1233$mean
 # Check class and convert to numeric
-class(forecasts$mean)
-as.numeric(forecasts$mean)
+class(forecasts1233$mean)
+as.numeric(forecasts1233$mean)
 # Extract forecast confidence intervals
-forecasts$lower
-forecasts$upper
+forecasts1233$lower
+forecasts1233$upper
 # Create data frame for forecast data
-forecasts_data <- data.frame(f_mean  = as.numeric(forecasts$mean),
-                             f_lower = as.numeric(forecasts$lower[, 2]),
-                             f_upper = as.numeric(forecasts$upper[, 2]))
+forecasts1233_data <- data.frame(f_mean  = as.numeric(forecasts1233$mean),
+                             f_lower = as.numeric(forecasts1233$lower[, 2]),
+                             f_upper = as.numeric(forecasts1233$upper[, 2]))
 
-# Subset data up to a specific date
-cdata.shortx1 <- Adj.Close["/20171007", ]
-# Check the head and tail of the subset data
-head(cdata.shortx1)
-tail(cdata.shortx1)
-# Subset data from a specific date
-cdata.shortx2 <-Adj.Close["20171007/", ]
 # Convert forecast data to xts object
-forecasts_xts <- xts(forecasts_data,order.by =index(cdata.shortx2))
+forecasts1233_xts <- xts(forecasts1233_data,order.by =index(cdata.shortx2))
 # Merge original data with forecast data
-cdata1233 <- merge(Adj.Close,forecasts_xts)
+cdata1233 <- merge(Adj.Close,forecasts1233_xts)
 # Display the merged data
 head(cdata1233)
 tail(cdata1233, n =627)
 # Plot the merged data
-plot(cdata1233, main = "Forcasts from ARIMA(1,2,33)", col = c("black", "blue", "red", "green"))
+plot(cdata1233, main = "Forecasts from ARIMA(1,2,33)", col = c("black", "blue", "red", "green"))
 
+
+# Compare 3 ARIMA model
+par(mfrow = c(3, 1)) 
+par(mar = c(5, 5, 2, 2))
+plot(cdata212, main = "Forecasts from ARIMA(2,1,2)", col = c("black", "blue", "red", "green"))
+plot(cdata1133, main = "Forecasts from ARIMA(1,1,33)", col = c("black", "blue", "red", "green"))
+plot(cdata1233, main = "Forecasts from ARIMA(1,2,33)", col = c("black", "blue", "red", "green"))
+# Reset the plotting area to the default
+par(mfrow = c(1, 1))
+
+# Compare 3 ARIMA model accuracy
+# Generate ARIMA(2,1,2) forecasts accuracy
+accuracy(forecasts212, Adj.Close["20171007/", ])
+# Generate ARIMA(1,1,33) forecasts accuracy
+accuracy(forecasts1133, Adj.Close["20171007/", ])
+# Generate ARIMA(1,2,33) forecasts accuracy
+accuracy(forecasts1233, Adj.Close["20171007/", ])
