@@ -1,22 +1,71 @@
+---
+title: "Reproducible Research Project: Netflix stock prediction"
+author: "Guozhao Tian, Yue Zhou"
+format:
+  html:
+    code-fold: true
+    toc: true
+    toc-depth: 2
+    toc-expand: 1
+    toc-title: Contents
+    toc-location: body
+    smooth-scroll: true
+    theme:
+      light: flatly
+      dark: darkly
+editor: visual
+---
+
+# 1. Configure the environment and preprocess data
+
+## 1.1 Library packages
+
+When creating the project, We fixed the versions of R studio and packages to ensure that the content can be reproduced.
+
+```{r results='hide', message=FALSE, warning=FALSE}
 library(xts)
 library(lmtest)
 library(tidyverse)
 library(urca)
 library(forecast)
+```
 
-# Read and prepare data
+## 1.2 Loading and processing data
+
+The article first checks the description of the data.
+
+We selected the same dataset (Netflix stock price from 2015 to 2020) according to the dataset description in the article.
+
+Here prove that the dataset we use is consistent with the article.
+
+```{r}
 data <- read.csv("NFLX.csv")
 data$Date <- as.Date(data$Date, format = "%Y-%m-%d")
 str(data)
+```
 
+# 2. Netflix stock chart
+
+## 2.1 Generate Netflix Adjusted Close prices chart
+
+Since we used the same dataset as the article, the trend chart is perfectly reproduced.
+
+```{r}
 data <- xts(data[, -1],order.by = data$Date,frequency = 12)
-
 # Extract and work with Adjusted Close prices
 Adj.Close <- data$Adj.Close
 
 # Plot original Adjusted Close prices
 plot(Adj.Close, main = "NFLX Adjusted Close Prices", ylab = "Price", xlab = "Date", col = "sky blue")
+```
 
+## 2.2 Add Moving Average
+
+We added 7-day, 30-day and 365-day Moving Average respectively.
+
+The trend chart is also perfectly reproduced here.
+
+```{r}
 # Calculate weekly moving average (K=7)
 weekly_ma <- rollmean(Adj.Close, k = 7, fill = NA)
 
@@ -25,19 +74,35 @@ monthly_ma <- rollmean(Adj.Close, k = 30, fill = NA)
 
 # Calculate yearly moving average (K=365, approximating 1 year)
 yearly_ma <- rollmean(Adj.Close, k = 365, fill = NA)
+```
 
+```{r}
 # Plot all moving averages
 plot(Adj.Close, main = "NFLX Adjusted Close Prices with Moving Averages", ylab = "Price", xlab = "Date", col = "red")
 lines(weekly_ma, col = "green", lwd = 2)
 lines(monthly_ma, col = "sky blue", lwd = 2)
 lines(yearly_ma, col = "purple", lwd = 2)
 legend("topright", legend = c("Weekly MA", "Monthly MA", "Yearly MA"), col = c("green", "sky blue", "purple"), lwd = 2)
+```
 
+# 3. Decomposition of the time series
+
+According to the requirements of the article, here we have done a decomposition of the time series data, in which seasonality, trends, data and reminders are identified, and seasonality is removed to improve the stationarity of the data.
+
+It is worth mentioning that our results here are not consistent with the original article.
+
+We found the reason when we couldn't reproduce 100% later. We specifically retain this difference, believing that it can reflect the problems that may be encountered in real reproduction operations.
+
+This is because the original article chose to use the 7-day moving average as the main data, while we directly chose the original data.
+
+```{r}
 # Decomposition of the time series
 Adj.Close_ts <- as.ts(Adj.Close)
 Adj.Close_ts <- ts(coredata(Adj.Close), frequency = 12)
 decomp <- decompose(Adj.Close_ts)
+```
 
+```{r}
 # Plotting decompose results
 par(mfrow = c(4, 1), mar = c(4, 4, 1, 1))  # Setting up the plotting area
 plot(decomp$x, main = "Original Data", ylab = "Data")
@@ -45,8 +110,15 @@ plot(decomp$seasonal, main = "Seasonal Component", ylab = "Seasonal")
 plot(decomp$trend, main = "Trend Component", ylab = "Trend")
 plot(decomp$random, main = "Random Component", ylab = "Remainder")
 par(mfrow = c(1, 1), mar = c(1, 1, 1, 1)) 
+```
 
+# 4. Stationarity test
 
+## 4.1 ACF PACF before differencing
+
+Here we recreate the stationarity test from the paper, first showing that the data are non-stationary before differencing.
+
+```{r}
 # Set up the plotting area to have 2 rows and 1 column
 par(mfrow = c(2, 1)) 
 # Set smaller margins
@@ -56,12 +128,21 @@ acf(Adj.Close, lag.max = 60, lwd = 5, col = "grey", na.action = na.pass)
 pacf(Adj.Close,lag.max = 36, lwd = 5, col = "black",na.action = na.pass)
 # Reset the plotting area to the default
 par(mfrow = c(1, 1)) 
+```
 
+From the ADF test results, the p-value is equal to 0.3651, which further proves that the time series is not stationary.
+
+```{r}
 #The Augmented Dickey-Fuller (ADF) test for unit roots in a time series.
 adf_test <- ur.df(Adj.Close, type = "drift", selectlags = "AIC")
 summary(adf_test)
+```
 
+## 4.2 ACF and PACF after difference
 
+Here we have differentiated the data and obtained a stationary time series.
+
+```{r}
 # Difference the data and remove NAs
 dadj <- na.exclude(diff.xts(Adj.Close))
 
@@ -74,12 +155,25 @@ acf(dadj,lag.max = 60, lwd = 5,col = "dark green",na.action = na.pass)
 pacf(dadj,lag.max = 36,lwd = 5, col = "dark green",na.action = na.pass)
 # Reset the plotting area to the default
 par(mfrow = c(1, 1)) 
+```
 
+The p-value is less than 0.05, so we can reject the null hypothesis and prove that the time series is stationary.
+
+The results of the stationarity test are consistent with the original article. They are both non-stationary before differencing and stationary after differencing.
+
+```{r}
 # Perform the ADF test on the differenced data
 adf_test_dadj <- ur.df(dadj, type = "drift", selectlags = "AIC")
 summary(adf_test_dadj)
+```
 
+# 5. ARIMA Model
 
+## 5.1 ARIMA(2,1,2) ACF PACF
+
+We generated an ARIMA model (2, 1, 2) using auto arima.
+
+```{r}
 # Automatically fit ARIMA model
 auto.arima(Adj.Close, seasonal = TRUE)
 # Subset data up to a specific date
@@ -88,7 +182,11 @@ cdata.shortx1 <- Adj.Close["/20171007", ]
 arima212 <- Arima(cdata.shortx1,order = c(2, 1, 2))
 # Coefficients and summary
 summary(arima212)
+```
 
+It shows some significant peaks in the ACF and PACF, and exceeds the limits.
+
+```{r}
 # Set up the plotting area to have 3 rows and 1 column
 par(mfrow = c(3, 1)) 
 par(mar = c(5, 5, 2, 2))  # c(bottom, left, top, right)
@@ -100,16 +198,32 @@ acf(resid(arima212),lag.max = 60, ylim = c(-0.1, 0.1), main = "ACF", lwd = 2, co
 pacf(resid(arima212),lag.max = 36, main = "PACF", lwd = 2, col = "dark green",na.action = na.pass)
 # Reset the plotting area to the default
 par(mfrow = c(1, 1))
+```
+
+The p-value in Ljung-box test is 0.9527. The very high p-value indicates that there is no evidence of autocorrelation in the residuals of this model. This means that the model residuals behave like white noise, which indicates a good model fit.
+
+```{r}
 # Ljung-Box test
 # The Box.test checks for the presence of autocorrelation in residuals. 
 Box.test(resid(arima212), type = "Ljung-Box", lag = 3)
+```
 
+## 5.2 ARIMA(1,1,33) ACF PACF
 
+The article then did not provide any further explanation and directly began to apply the ARIMA (1, 1, 33) and ARIMA (1, 2, 33) models.
+
+So we also used these two models directly to be consistent with the original article.
+
+```{r}
 # Fit ARIMA(1, 1, 33) model
 arima1133 <- Arima(cdata.shortx1,order = c(1, 1,33))
 # Coefficient test and summary
 summary(arima1133)
+```
 
+From the plot, we can see that ARIMA(1, 1, 33) has no significant peaks beyond the ACF and PACF limits, which means the automatic ARIMA model is more accurate.
+
+```{r}
 # Set up the plotting area to have 3 rows and 1 column
 par(mfrow = c(3, 1)) 
 par(mar = c(5, 5, 2, 2))  # c(bottom, left, top, right)
@@ -121,19 +235,32 @@ acf(resid(arima1133),lag.max = 60, main = "ACF", ylim = c(-0.1, 0.1),lwd = 2, co
 pacf(resid(arima1133),lag.max = 36, main = "PACF", lwd = 2, col = "dark green",na.action = na.pass)
 # Reset the plotting area to the default
 par(mfrow = c(1, 1))
+```
+
+The p-value in the Ljung-box test is 0.9998. The p-value is very high, which strongly indicates that the residuals of this model do not show autocorrelation. This indicates that the model has an extremely high fit. However, there is a possibility of overfitting.
+
+```{r}
 # Ljung-Box test
 # The Box.test checks for the presence of autocorrelation in residuals. 
 Box.test(resid(arima1133), type = "Ljung-Box", lag = 3)
+```
 
+## 5.3 ARIMA(1,2,33) ACF PACF
 
+```{r}
 # Fit ARIMA(1, 2, 33) model
 arima1233 <- Arima(cdata.shortx1$Adj.Close,order = c(1, 2,33))
 # Coefficient test and summary
 summary(arima1233)
+```
 
+ARIMA (1,2,33) was also tested for best accuracy as it did not show significant peaks beyond the ACF and PACF limits and was not much different from the ARIMA(1,1,33) results.
+
+```{r}
 # Set up the plotting area to have 3 rows and 1 column
 par(mfrow = c(3, 1)) 
 par(mar = c(5, 5, 2, 2))  # c(bottom, left, top, right)
+
 # Plot residuals
 plot(resid(arima1233))
 # ACF and PACF of residuals
@@ -141,15 +268,32 @@ acf(resid(arima1233),lag.max = 60, main = "ACF", ylim = c(-0.1, 0.1), lwd = 2, c
 pacf(resid(arima1233),lag.max = 36, main = "PACF", lwd = 2, col = "dark green",na.action = na.pass)
 # Reset the plotting area to the default
 par(mfrow = c(1, 1))
+```
+
+The p-value in the Ljung-box test is 0.9946. Similar to the other two models, this result indicates that there is no significant autocorrelation in the residuals, but there may also be overfitting.
+
+```{r}
 # Ljung-Box test
 # The Box.test checks for the presence of autocorrelation in residuals. 
 Box.test(resid(arima1233), type = "Ljung-Box", lag = 3)
+```
 
+# 6. Forecast
 
+## 6.1 ARIMA(2,1,2)
+
+Judging from the results of forecasts accuracy, although the model performs well in the train set, it has a large error in the test set.
+
+```{r}
 # Generate ARIMA(2,1,2) forecasts, 627 future values(50% of data) are forecasted.
 forecasts212 <- forecast(arima212, h = 627) 
 # Generate ARIMA(2,1,2) forecasts accuracy
 accuracy(forecasts212, Adj.Close["20171007/", ])
+```
+
+Forecast data processing
+
+```{r message = FALSE, results = 'hide'}
 # Extract forecasted mean
 forecasts212
 forecasts212$mean
@@ -163,7 +307,11 @@ forecasts212$upper
 forecasts212_data <- data.frame(f_mean  = as.numeric(forecasts212$mean),
                              f_lower = as.numeric(forecasts212$lower[, 2]),
                              f_upper = as.numeric(forecasts212$upper[, 2]))
+```
 
+Splitting the dataset
+
+```{r}
 # Subset data up to a specific date
 cdata.shortx1 <- Adj.Close["/20171007", ]
 # Check the head and tail of the subset data
@@ -173,6 +321,15 @@ tail(cdata.shortx1)
 cdata.shortx2 <-Adj.Close["20171007/", ]
 # Convert forecast data to xts object
 forecasts212_xts <- xts(forecasts212_data,order.by =index(cdata.shortx2))
+```
+
+Plot ARIMA(2,1,2) forecasts
+
+From the figure we can see that the predicted results are very biased, but this is also consistent with the description of the model in the article.
+
+```{r}
+# Convert forecast data to xts object
+forecasts212_xts <- xts(forecasts212_data,order.by =index(cdata.shortx2))
 # Merge original data with forecast data
 cdata212 <- merge(Adj.Close,forecasts212_xts)
 # Display the merged data
@@ -180,12 +337,22 @@ head(cdata212)
 tail(cdata212, n =627)
 # Plot the merged data
 plot(cdata212, main = "Forecasts from ARIMA(2,1,2)", col = c("black", "blue", "red", "green"))
+```
 
+## 6.2 ARIMA(1,1,33)
 
+The results also show that there is a large error between the train set and the test set, but it is better than ARIMA (2, 1, 2).
+
+```{r}
 # Generate ARIMA(1,1,33) forecasts,627 future values are forecasted.
 forecasts1133 <- forecast(arima1133, h = 627) 
 # Generate ARIMA(1,1,33) forecasts accuracy
 accuracy(forecasts1133, Adj.Close["20171007/", ])
+```
+
+Forecast data processing
+
+```{r message = FALSE, results = 'hide'}
 # Extract forecasted mean
 forecasts1133$mean
 # Check class and convert to numeric
@@ -198,7 +365,11 @@ forecasts1133$upper
 forecasts1133_data <- data.frame(f_mean  = as.numeric(forecasts1133$mean),
                              f_lower = as.numeric(forecasts1133$lower[, 2]),
                              f_upper = as.numeric(forecasts1133$upper[, 2]))
+```
 
+From the figure we can see that the prediction results are obviously more accurate than before.
+
+```{r}
 # Convert forecast data to xts object
 forecasts1133_xts <- xts(forecasts1133_data,order.by =index(cdata.shortx2))
 # Merge original data with forecast data
@@ -208,12 +379,22 @@ head(cdata1133)
 tail(cdata1133, n =627)
 # Plot the merged data
 plot(cdata1133, main = "Forecasts from ARIMA(1,1,33)", col = c("black", "blue", "red", "green"))
+```
 
+## 6.3 ARIMA(1,2,33)
 
+The results here show that the errors for both the train set and test set have increased again.
+
+```{r}
 # Generate ARIMA(1,2,33) forecasts,627 future values are forecasted.
 forecasts1233 <- forecast(arima1233, h = 627)
 # Generate ARIMA(1,2,33) forecasts accuracy
 accuracy(forecasts1233, Adj.Close["20171007/", ])
+```
+
+Forecast data processing
+
+```{r message = FALSE, results = 'hide'}
 # Extract forecasted mean
 forecasts1233$mean
 # Check class and convert to numeric
@@ -226,7 +407,11 @@ forecasts1233$upper
 forecasts1233_data <- data.frame(f_mean  = as.numeric(forecasts1233$mean),
                              f_lower = as.numeric(forecasts1233$lower[, 2]),
                              f_upper = as.numeric(forecasts1233$upper[, 2]))
+```
 
+From the figure we can see that the prediction results are obviously too high.
+
+```{r}
 # Convert forecast data to xts object
 forecasts1233_xts <- xts(forecasts1233_data,order.by =index(cdata.shortx2))
 # Merge original data with forecast data
@@ -236,9 +421,13 @@ head(cdata1233)
 tail(cdata1233, n =627)
 # Plot the merged data
 plot(cdata1233, main = "Forecasts from ARIMA(1,2,33)", col = c("black", "blue", "red", "green"))
+```
 
+# 7. Compare 3 ARIMA Model
 
-# Compare 3 ARIMA model
+From the comparison chart, we can see that compared with the other two models, the prediction results of ARIMA (1, 1, 33) are more accurate.
+
+```{r}
 par(mfrow = c(3, 1)) 
 par(mar = c(5, 5, 2, 2))
 plot(cdata212, main = "Forecasts from ARIMA(2,1,2)", col = c("black", "blue", "red", "green"))
@@ -246,7 +435,11 @@ plot(cdata1133, main = "Forecasts from ARIMA(1,1,33)", col = c("black", "blue", 
 plot(cdata1233, main = "Forecasts from ARIMA(1,2,33)", col = c("black", "blue", "red", "green"))
 # Reset the plotting area to the default
 par(mfrow = c(1, 1))
+```
 
+This can be seen more clearly from the comparison of forecasts accuracy.
+
+```{r}
 # Compare 3 ARIMA model accuracy
 # Generate ARIMA(2,1,2) forecasts accuracy
 accuracy(forecasts212, Adj.Close["20171007/", ])
@@ -254,3 +447,25 @@ accuracy(forecasts212, Adj.Close["20171007/", ])
 accuracy(forecasts1133, Adj.Close["20171007/", ])
 # Generate ARIMA(1,2,33) forecasts accuracy
 accuracy(forecasts1233, Adj.Close["20171007/", ])
+```
+
+# 8. Conclusion
+
+## 8.1 Article Conclusion
+
+This study uses Netflix stock historical data for the past five years (April 7, 2015 to April 7, 2020) to compare the results of the automatic ARIMA model and two custom ARIMA models.
+
+After multiple tests, the calculated values ​​of ARIMA (1,1,33) show accurate results, which indicates that using ARIMA models on time series data can accurately predict stock data, which will help stock investors make investment decisions. The ARIMA (1,1,33) forecast for Netflix stock shows continuity of value.
+
+## 8.2 Reproducible research
+
+First of all, we do not discuss whether the conclusions in the article are correct. Our focus is on whether the research can be reproduced.
+
+There are still some details that cannot be reproduced 100%. For example, the automatic ARIMA model we obtained is (2, 1, 2), while the automatic ARIMA model obtained in the article is (4, 1, 4).
+
+We think the reasons for non-reproducibility are:
+
+1.  The dataset used is wrong. We used the original adjusted close prices, while the article used the 7-day moving average.
+2.  It is not clear how the authors removed seasonality in the time series decomposition. They may have used a different code.
+
+Despite this, we have completely replicated all the operations in the article, and the results obtained are consistent with those in the article.
